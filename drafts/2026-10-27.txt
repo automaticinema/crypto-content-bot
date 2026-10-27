@@ -1,9 +1,9 @@
 Crypto snapshot 2026-10-27
 
-🔴 BTC: $80,234.00 (-0.07% 24h)
-🟢 ETH: $2,331.07 (+0.29% 24h)
-🔴 SOL: $100.66 (-0.84% 24h)
+🟢 BTC: $80,418.00 (+0.19% 24h)
+🟢 ETH: $2,342.26 (+0.77% 24h)
+🔴 SOL: $100.62 (-0.64% 24h)
 
 Top mover today: ETH
-Not financial advice. Follow for daily updates.
-#crypto #bitcoin #ethereum #solana
+Not financial advice.
+#crypto #bitcoin
