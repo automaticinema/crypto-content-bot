@@ -1,4 +1,4 @@
-import json, urllib.request, urllib.parse, datetime, os
+import json, urllib.request, urllib.parse, datetime, os, time
 import xml.etree.ElementTree as ET
 
 UA = {"User-Agent": "Mozilla/5.0 (crypto-content-bot)"}
@@ -52,6 +52,30 @@ try:
 except Exception as e:
     print("Headline failed:", e)
 
+# --- 7-day chart (optional) ---
+chart_url = None
+try:
+    datasets, labels = [], []
+    for cid, sym in MAIN.items():
+        time.sleep(3)  # be gentle with the free API
+        raw = json.loads(get(
+            f"https://api.coingecko.com/api/v3/coins/{cid}/market_chart"
+            "?vs_currency=usd&days=7&interval=daily"))["prices"]
+        base = raw[0][1]
+        datasets.append({"label": sym, "fill": False,
+                         "data": [round((p[1] / base - 1) * 100, 2) for p in raw]})
+        if not labels:
+            labels = [datetime.datetime.utcfromtimestamp(p[0] / 1000).strftime("%d %b")
+                      for p in raw]
+    cfg = {"type": "line",
+           "data": {"labels": labels, "datasets": datasets},
+           "options": {"title": {"display": True,
+                                 "text": "7-day performance (% change)"}}}
+    chart_url = ("https://quickchart.io/chart?w=800&h=450&bkg=white&c="
+                 + urllib.parse.quote(json.dumps(cfg, separators=(",", ":"))))
+except Exception as e:
+    print("Chart failed:", e)
+
 today = datetime.date.today().isoformat()
 
 # --- Build posts ---
@@ -60,7 +84,7 @@ if fg_line:
     x_parts.append(fg_line)
 x_parts += [gain_line, "", "Not financial advice. #crypto #bitcoin"]
 x_post = "\n".join(x_parts)
-if len(x_post) > 280:  # drop the gainer line if too long
+if len(x_post) > 280:
     x_parts.remove(gain_line)
     x_post = "\n".join(x_parts)
 
@@ -76,22 +100,38 @@ tg_post = "\n".join(tg_parts)
 # --- Save draft ---
 os.makedirs("drafts", exist_ok=True)
 with open(f"drafts/{today}.txt", "w", encoding="utf-8") as f:
-    f.write("=== X POST ===\n" + x_post + "\n\n=== TELEGRAM POST ===\n" + tg_post)
+    f.write("=== X POST ===\n" + x_post
+            + "\n\n=== CHART IMAGE (open link, save image, attach to X) ===\n"
+            + (chart_url or "none")
+            + "\n\n=== TELEGRAM POST ===\n" + tg_post)
 print(tg_post)
 print(f"\n[X post length: {len(x_post)}]")
 
+
 # --- Telegram ---
+def tg(method, fields):
+    req = urllib.request.Request(
+        f"https://api.telegram.org/bot{token}/{method}",
+        data=urllib.parse.urlencode(fields).encode())
+    urllib.request.urlopen(req, timeout=30)
+
+
 token = os.environ.get("TG_TOKEN")
 chat = os.environ.get("TG_CHAT")
 if token and chat:
-    try:
-        req = urllib.request.Request(
-            f"https://api.telegram.org/bot{token}/sendMessage",
-            data=urllib.parse.urlencode({"chat_id": chat, "text": tg_post}).encode(),
-        )
-        urllib.request.urlopen(req)
-        print("Sent to Telegram")
-    except Exception as e:
-        print("Telegram failed:", e)
+    sent = False
+    if chart_url and len(tg_post) <= 1024:
+        try:
+            tg("sendPhoto", {"chat_id": chat, "photo": chart_url, "caption": tg_post})
+            sent = True
+            print("Sent to Telegram with chart")
+        except Exception as e:
+            print("Photo send failed:", e)
+    if not sent:
+        try:
+            tg("sendMessage", {"chat_id": chat, "text": tg_post})
+            print("Sent to Telegram (text only)")
+        except Exception as e:
+            print("Telegram failed:", e)
 else:
     print("Telegram secrets not set, skipping")
