@@ -27,7 +27,13 @@ for cid, sym in MAIN.items():
 
 movers = [c for c in markets
           if c["symbol"].lower() not in SKIP
-          and c.get("price_change_percentage_24h") is not None]
+          and c.get("price_change_percentage_24h") is not None
+          and (c.get("market_cap") or 0) >= 1_000_000_000
+          and (c.get("total_volume") or 0) >= 50_000_000]
+if len(movers) < 2:  # fallback so the post never breaks
+    movers = [c for c in markets
+              if c["symbol"].lower() not in SKIP
+              and c.get("price_change_percentage_24h") is not None]
 gainer = max(movers, key=lambda c: c["price_change_percentage_24h"])
 loser = min(movers, key=lambda c: c["price_change_percentage_24h"])
 gain_line = (f"📈 Top gainer (top 100): {gainer['symbol'].upper()} "
