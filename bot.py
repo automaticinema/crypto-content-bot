@@ -36,9 +36,9 @@ if len(movers) < 2:  # fallback so the post never breaks
               and c.get("price_change_percentage_24h") is not None]
 gainer = max(movers, key=lambda c: c["price_change_percentage_24h"])
 loser = min(movers, key=lambda c: c["price_change_percentage_24h"])
-gain_line = (f"📈 Top gainer (top 100): {gainer['symbol'].upper()} "
+gain_line = (f"📈 Top gainer (large-cap): {gainer['symbol'].upper()} "
              f"{gainer['price_change_percentage_24h']:+.1f}%")
-lose_line = (f"📉 Top loser (top 100): {loser['symbol'].upper()} "
+lose_line = (f"📉 Top loser (large-cap): {loser['symbol'].upper()} "
              f"{loser['price_change_percentage_24h']:+.1f}%")
 
 # --- Fear & Greed (optional) ---
