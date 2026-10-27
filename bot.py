@@ -77,4 +77,4 @@ data = urllib.parse.urlencode({
 urllib.request.urlopen(
     urllib.request.Request(f"https://api.telegram.org/bot{token}/sendMessage", data=data),
     timeout=20,
-) print("TG_ME set:", bool(os.environ.get("TG_ME")))
+) print ("TG_ME set:", bool(os.environ.get("TG_ME")))
