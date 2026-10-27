@@ -77,4 +77,28 @@ data = urllib.parse.urlencode({
 urllib.request.urlopen(
     urllib.request.Request(f"https://api.telegram.org/bot{token}/sendMessage", data=data),
     timeout=20,
-) print ("TG_ME set:", bool(os.environ.get("TG_ME")))
+)
+
+# --- X draft (tap-to-post), sent privately ---
+me = os.environ.get("TG_ME")
+print("TG_ME set:", bool(me))
+if me:
+    x_text = (
+        f"📊 Crypto snapshot {today}\n"
+        + "\n".join(lines)
+        + f"\n{fg_line}\n"
+        + f"🚀 {gainer['symbol'].upper()} {gainer['price_change_percentage_24h']:+.1f}% | "
+        + f"💥 {loser['symbol'].upper()} {loser['price_change_percentage_24h']:+.1f}%\n"
+        + "#crypto #bitcoin"
+    )[:280]
+    link = "https://x.com/intent/post?text=" + urllib.parse.quote(x_text)
+    kb = json.dumps({"inline_keyboard": [[{"text": "Post to X", "url": link}]]})
+    data = urllib.parse.urlencode({
+        "chat_id": me,
+        "text": "Your X draft is ready:\n\n" + x_text,
+        "reply_markup": kb,
+    }).encode()
+    urllib.request.urlopen(
+        urllib.request.Request(f"https://api.telegram.org/bot{token}/sendMessage", data=data),
+        timeout=20,
+    )
