@@ -13,10 +13,7 @@ def arrow(x):
 
 
 # --- Prices (CoinGecko, top 100 by market cap) ---
-url = (
-    "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd"
-    "&order=market_cap_desc&per_page=100&page=1&price_change_percentage=24h"
-)
+url = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&price_change_percentage=24h"
 coins = json.loads(get(url))
 by_id = {c["id"]: c for c in coins}
 
@@ -29,12 +26,7 @@ for cid, sym in [("bitcoin", "BTC"), ("ethereum", "ETH"), ("solana", "SOL")]:
 
 # --- Top gainer / loser (skip stablecoins and extreme outliers) ---
 stables = ("usdt", "usdc", "dai", "usde", "fdusd", "usds", "pyusd")
-movers = [
-    c for c in coins
-    if c.get("price_change_percentage_24h") is not None
-    and abs(c["price_change_percentage_24h"]) < 1000
-    and c["symbol"].lower() not in stables
-]
+movers = [c for c in coins if c.get("price_change_percentage_24h") is not None and abs(c["price_change_percentage_24h"]) < 1000 and c["symbol"].lower() not in stables]
 gainer = max(movers, key=lambda c: c["price_change_percentage_24h"])
 loser = min(movers, key=lambda c: c["price_change_percentage_24h"])
 
@@ -55,21 +47,18 @@ except Exception:
 
 # --- Build message ---
 date = datetime.now(timezone.utc).strftime("%d %b %Y")
+g_pct = format(gainer["price_change_percentage_24h"], "+.1f")
+l_pct = format(loser["price_change_percentage_24h"], "+.1f")
+movers_line = "🚀 Top gainer: " + gainer["symbol"].upper() + " " + g_pct + "%\n💥 Top loser: " + loser["symbol"].upper() + " " + l_pct + "%"
 
 parts = []
 parts.append("📊 Crypto Daily – " + date)
 parts.append("\n".join(price_lines))
-parts.append(
-    "🚀 Top gainer: " + gainer["symbol"].upper() + " "
-    + format(gainer["price_change_percentage_24h"], "+.1f") + "%\n"
-    + "💥 Top loser: " + loser["symbol"].upper() + " "
-    + format(loser["price_change_percentage_24h"], "+.1f") + "%"
-)
+parts.append(movers_line)
 parts.append(fg_line)
 parts.append(head)
 parts.append("Not financial advice. DYOR.")
 parts.append("#crypto #bitcoin #ethereum #solana")
-
 text = "\n\n".join(parts)
 print(text)
 
@@ -77,9 +66,11 @@ print(text)
 token = os.environ.get("TG_TOKEN")
 chat = os.environ.get("TG_CHAT")
 if token and chat:
-    data = urllib.parse.urlencode({
-        "chat_id": chat,
-        "text": text,
-        "disable_web_page_preview": "true",
-    }).encode()
-    resp = urllib.request.urlopen(
+    data = urllib.parse.urlencode({"chat_id": chat, "text": text, "disable_web_page_preview": "true"}).encode()
+    tg_url = "https://api.telegram.org/bot" + token + "/sendMessage"
+    resp = urllib.request.urlopen(tg_url, data, timeout=20)
+    print(resp.read())
+else:
+    print("TG_TOKEN / TG_CHAT not set, skipping Telegram post")
+
+print("Done")
