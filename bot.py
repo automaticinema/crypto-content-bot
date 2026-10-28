@@ -51,7 +51,7 @@ text = (
     + "\n".join(lines)
     + f"\n\n🚀 Top gainer: {gainer['symbol'].upper()} {gainer['price_change_percentage_24h']:+.1f}%"
     + f"\n💥 Top loser: {loser['symbol'].upper()} {loser['price_change_percentage_24h']:+.1f}%"
-    + f"\n\n{fg_line}\n\n{head}\n\nNot financial advice. DYOR."
+    + f"\n\n{fg_line}\n\n{head}\n\ Not financial advice. DYOR.\n\n#crypto #bitcoin #ethereum #solana
 )
 
 print(text)
