@@ -10,9 +10,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+
+      - name: Check secrets and files
+        env:
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT: ${{ secrets.TG_CHAT }}
+          TG_ME: ${{ secrets.TG_ME }}
+        run: |
+          echo "TG_TOKEN length: ${#TG_TOKEN}"
+          echo "TG_CHAT: $TG_CHAT"
+          echo "TG_ME length: ${#TG_ME}"
+          ls -la
+
       - name: Run bot
         env:
           TG_TOKEN: ${{ secrets.TG_TOKEN }}
           TG_CHAT: ${{ secrets.TG_CHAT }}
           TG_ME: ${{ secrets.TG_ME }}
-        run: python3 bot.py
+        run: python3 -u bot.py
